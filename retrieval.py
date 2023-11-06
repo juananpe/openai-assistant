@@ -10,6 +10,8 @@ file = client.files.create(
   purpose='assistants'
 )
 
+print(file.id)
+
 # Add the file to the assistant
 assistant = client.beta.assistants.create(
   instructions="You are a teacher assistant chatbot with access to the transcripts of the main teacher webinars. Use your knowledge base to best respond to students' queries.",
@@ -39,7 +41,7 @@ run = client.beta.threads.runs.retrieve(
 )
 
 # periodically retrieve the Run to check on its status to see if it has moved to completed.
-while run.status == "queued":
+while run.status != "completed":
   run = client.beta.threads.runs.retrieve(
     thread_id=thread.id,
     run_id=run.id
