@@ -25,6 +25,11 @@ client = OpenAI()
 
 # "file-iDAtEXEDBMlSfuYRgY4F916o"  agentsinproduction.txt
 # "file-x5XNjYfQnmJEpSmiJb9tQPPn" webinar.txt
+# "file-fR8j7knjypVPO6AhpfdEnO9b" Vídeo 1 El shock del futuro
+# "file-RBySQWib5fDVYsibN4Mg8RdO"   (video 1 Future shock)
+# "file-cIZrEfjlxPAkcH7uLuJCqeLH" Vídeo 2 Los puntos sobre las IAs
+# "file-YVBJfz7M7rjRIx6TDpd8rIDx", (video 2 The points on AI (costs and risks))
+# 
 # print(file.id)
 
 # Add the file to the assistant
@@ -32,44 +37,53 @@ assistant = client.beta.assistants.create(
   instructions="You are a teacher assistant chatbot with access to the transcripts of the main teacher webinars. Use your knowledge base to best respond to students' queries.",
   model="gpt-4-1106-preview",
   tools=[{"type": "retrieval"}],
-  file_ids=["file-x5XNjYfQnmJEpSmiJb9tQPPn","file-iDAtEXEDBMlSfuYRgY4F916o"]
+  file_ids=["file-RBySQWib5fDVYsibN4Mg8RdO", "file-YVBJfz7M7rjRIx6TDpd8rIDx"]
 )
 thread = client.beta.threads.create()
 
-message = client.beta.threads.messages.create(
-  thread_id=thread.id,
-  role="user",
-  # content="What did they say about prompt injection in the webinar?",
-  content="What did they say about prompt begging?",
-#  file_ids=[file.id]
-)
+while True:
+  # Get input
+  prompt = input("Your question: ")
 
-run = client.beta.threads.runs.create(
-  thread_id=thread.id,
-  assistant_id=assistant.id,
-  instructions="Please address the user as Dear Student."
-)
+  message = client.beta.threads.messages.create(
+    thread_id=thread.id,
+    role="user",
+    # content="What did they say about prompt injection in the webinar?",
+    # content="What did they say about prompt begging?",
+    content=prompt,
+  #  file_ids=[file.id]
+  )
 
-# This creates a Run in a queued status. 
-run = client.beta.threads.runs.retrieve(
-  thread_id=thread.id,
-  run_id=run.id
-)
+  run = client.beta.threads.runs.create(
+    thread_id=thread.id,
+    assistant_id=assistant.id,
+    # instructions="Please address the user as Dear Student."
+  )
 
-# periodically retrieve the Run to check on its status to see if it has moved to completed.
-while run.status != "completed":
-  print(run.status)
+  # This creates a Run in a queued status. 
   run = client.beta.threads.runs.retrieve(
     thread_id=thread.id,
     run_id=run.id
   )
-  # sleep for 3 seconds
-  time.sleep(3)
 
-messages = client.beta.threads.messages.list(
-  thread_id=thread.id
-)
+  # periodically retrieve the Run to check on its status to see if it has moved to completed.
+  while run.status != "completed":
+    print(run.status)
+    run = client.beta.threads.runs.retrieve(
+      thread_id=thread.id,
+      run_id=run.id
+    )
+    # sleep for 3 seconds
+    time.sleep(3)
 
-# it works, but it's getting empty annotations
-# See : https://community.openai.com/t/assistant-citations-annotations-array-is-always-empty/476752
-print(messages)
+  messages = client.beta.threads.messages.list(
+    thread_id=thread.id
+  )
+
+  message = messages.data[0]
+  print(message.content[0].text.value)
+  print(message.content[0].text.annotations)
+
+  # it works, but it's getting empty annotations
+  # See : https://community.openai.com/t/assistant-citations-annotations-array-is-always-empty/476752
+    
